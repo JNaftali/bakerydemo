@@ -7,6 +7,7 @@ from modelcluster.fields import ParentalManyToManyField
 from wagtail.admin.edit_handlers import (
     FieldPanel, MultiFieldPanel, StreamFieldPanel
 )
+from wagtail.api import APIField
 from wagtail.core.fields import StreamField
 from wagtail.core.models import Page
 from wagtail.search import index
@@ -146,6 +147,11 @@ class BreadPage(Page):
 
     parent_page_types = ['BreadsIndexPage']
 
+    api_fields = [
+        APIField('introduction'),
+        APIField('image'),
+    ]
+
 
 class BreadsIndexPage(Page):
     """
@@ -183,6 +189,13 @@ class BreadsIndexPage(Page):
         return BreadPage.objects.live().descendant_of(
             self).order_by('-first_published_at')
 
+
+    @property
+    def breads(self):
+        bread_pages = self.get_breads()
+        return [{"title": page.title, "url": page.get_url()} for page in bread_pages]
+
+
     # Allows child objects (e.g. BreadPage objects) to be accessible via the
     # template. We use this on the HomePage to display child items of featured
     # content
@@ -214,3 +227,6 @@ class BreadsIndexPage(Page):
         context['breads'] = breads
 
         return context
+
+    api_fields = [APIField('breads')]
+    
